@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Asteroids Game</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="game-container">
+    <canvas id="gameCanvas"></canvas>
+    <div id="score-display">Score: 0</div>
+    <div id="lives-display">Lives: 3</div>
+    <div id="level-display">Level: 1</div>
+
+    <div id="game-over">
+      <h2>GAME OVER</h2>
+      <p>Your final score: <span id="final-score">0</span></p>
+
+      <!-- Username input & submit button for leaderboard -->
+      <div id="score-submit-section">
+        <label for="username-input">Enter your name:</label>
+        <input type="text" id="username-input" />
+        <button id="submit-score-button">Submit</button>
+      </div>
+
+      <!-- Leaderboard display -->
+      <div id="leaderboard-section">
+        <h3>Leaderboard</h3>
+        <ol id="leaderboard-list">
+          <!-- Populated dynamically -->
+        </ol>
+      </div>
+
+      <button id="restart-button">Play Again</button>
+    </div>
+
+    <div id="start-screen">
+      <h1>ASTEROIDS</h1>
+      <p>Use WASD or arrow keys to move, SPACE to shoot</p>
+      <p>Destroy all asteroids to advance to the next level</p>
+      <p>Large asteroids split into medium ones, and medium ones split into small ones</p>
+      <button id="start-button">Start Game</button>
+    </div>
+
+    <div id="pause-menu">
+      <h2>GAME PAUSED</h2>
+      <button id="resume-button">Resume</button>
+      <button id="quit-button">Quit</button>
+    </div>
+  </div>
+
+  <script src="script.js" defer></script>
+</body>
+</html>
