@@ -1,24 +1,26 @@
 document.addEventListener('DOMContentLoaded', function() {
   // Game constants
   const FPS = 60;
-  const SHIP_SIZE = 20;
-  const SHIP_THRUST = 0.10;
-  const FRICTION = 0.99;
-  const TURN_SPEED = 0.05;
+  const SHIP_SIZE = 22;
+  const SHIP_THRUST = 0.3;
+  const FRICTION = 0.985; // Higher value = less friction (more glide)
+  const TURN_SPEED = 0.04;
   const BULLET_SPEED = 6;
   const BULLET_LIFE = 0.6; // seconds
   const MAX_BULLETS = 10;
-  const ASTEROID_SPEED_MULT = 0.3;
+  const ASTEROID_SPEED_MULT = 0.5;
   const ASTEROID_POINTS_LARGE = 20;
   const ASTEROID_POINTS_MEDIUM = 50;
   const ASTEROID_POINTS_SMALL = 100;
-  const INVULNERABLE_TIME = 3; // seconds
+  const INVULNERABLE_TIME = 3; // seconds of invulnerability after spawning/respawning
   const ASTEROID_VERT = 10; // average number of vertices on asteroid
   const ASTEROID_JAG = 0.4; // jaggedness of asteroid (0 = none, 1 = lots)
   const ASTEROID_SIZE_LARGE = 80;
   const ASTEROID_SIZE_MEDIUM = 40;
   const ASTEROID_SIZE_SMALL = 20;
   const SHOW_CENTER_DOT = false; // Debugging feature to show center of ship & asteroids
+  const SHIP_CONSTANT_SPEED = 150; // Constant speed for ship movement
+  const BLINK_DURATION = 0.1; // seconds between blinks during invulnerability
 
   // Game variables
   let canvas, ctx;
@@ -97,10 +99,14 @@ document.addEventListener('DOMContentLoaded', function() {
       };
       this.exploding = false;
       this.explodeTime = 0;
+      
+      // Invulnerability properties
       this.invulnerable = true;
       this.invulnerableTime = INVULNERABLE_TIME * FPS; // frames of invulnerability
-      this.blinkTime = Math.ceil(0.1 * FPS); // frames between blinks
+      this.blinkTime = Math.ceil(BLINK_DURATION * FPS); // frames between blinks
       this.blinkCount = Math.ceil(this.invulnerableTime / this.blinkTime);
+      this.blinkOn = true; // Used to toggle ship visibility during blinking
+      
       this.canShoot = true;
       this.shootTimer = 0;
     }
@@ -108,9 +114,18 @@ document.addEventListener('DOMContentLoaded', function() {
     update() {
       // Invulnerability countdown
       if (this.invulnerable) {
-        this.blinkCount--;
-        if (this.blinkCount <= 0) {
+        // Decrement the invulnerability counter
+        this.invulnerableTime--;
+        
+        // Toggle blinking effect
+        if (this.invulnerableTime % this.blinkTime === 0) {
+          this.blinkOn = !this.blinkOn;
+        }
+        
+        // Check if invulnerability is over
+        if (this.invulnerableTime <= 0) {
           this.invulnerable = false;
+          this.blinkOn = true; // Make sure ship is visible when invulnerability ends
         }
       }
 
@@ -133,14 +148,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
       this.angle += this.rotation;
 
-      // Handle thrust
+      // Handle thrust - constant speed with glide
       this.thrusting = keys.up;
 
       if (this.thrusting) {
-        this.thrust.x += SHIP_THRUST * Math.cos(this.angle);
-        this.thrust.y -= SHIP_THRUST * Math.sin(this.angle);
+        // Apply constant speed in the direction the ship is facing
+        this.thrust.x = SHIP_CONSTANT_SPEED * Math.cos(this.angle) / FPS;
+        this.thrust.y = -SHIP_CONSTANT_SPEED * Math.sin(this.angle) / FPS;
       } else {
-        // Apply friction
+        // Apply friction but maintain some glide when not thrusting
         this.thrust.x *= FRICTION;
         this.thrust.y *= FRICTION;
       }
@@ -176,13 +192,13 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     draw() {
-      // During invulnerability, blink the ship
-      if (this.invulnerable && Math.floor(this.blinkCount / 10) % 2 === 0) {
-        return; // skip drawing during half the blink cycle
+      // Skip drawing if blinking and in the "off" part of the blink cycle
+      if (this.invulnerable && !this.blinkOn) {
+        return;
       }
 
       // Draw ship
-      ctx.strokeStyle = "white";
+      ctx.strokeStyle = this.invulnerable ? "#00FFFF" : "white"; // Cyan color during invulnerability
       ctx.lineWidth = 2;
       ctx.beginPath();
 
@@ -198,6 +214,13 @@ document.addEventListener('DOMContentLoaded', function() {
       ctx.lineTo(rightX, rightY);
       ctx.closePath();
       ctx.stroke();
+
+      // Draw a subtle glow effect during invulnerability
+      if (this.invulnerable) {
+        ctx.strokeStyle = "rgba(0, 255, 255, 0.3)";
+        ctx.lineWidth = 4;
+        ctx.stroke();
+      }
 
       // Draw thruster flame
       if (this.thrusting) {
@@ -236,8 +259,12 @@ document.addEventListener('DOMContentLoaded', function() {
       this.rotation = 0;
       this.thrust = { x: 0, y: 0 };
       this.exploding = false;
+      
+      // Reset invulnerability
       this.invulnerable = true;
+      this.invulnerableTime = INVULNERABLE_TIME * FPS;
       this.blinkCount = Math.ceil(this.invulnerableTime / this.blinkTime);
+      this.blinkOn = true;
     }
   }
 
@@ -530,7 +557,7 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     }
 
-    // Ship <-> Asteroid
+    // Ship <-> Asteroid (only check if ship is not invulnerable)
     if (!ship.invulnerable) {
       for (let i = 0; i < asteroids.length; i++) {
         const distance = distBetweenPoints(ship.x, ship.y, asteroids[i].x, asteroids[i].y);
