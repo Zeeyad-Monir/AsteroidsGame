@@ -2,13 +2,13 @@ document.addEventListener('DOMContentLoaded', function() {
   // Game constants
   const FPS = 60;
   const SHIP_SIZE = 20;
-  const SHIP_THRUST = 0.20;
-  const FRICTION = 0.98;
-  const TURN_SPEED = 0.07;
-  const BULLET_SPEED = 8;
-  const BULLET_LIFE = 0.7; // seconds
+  const SHIP_THRUST = 0.10;
+  const FRICTION = 0.99;
+  const TURN_SPEED = 0.05;
+  const BULLET_SPEED = 6;
+  const BULLET_LIFE = 0.6; // seconds
   const MAX_BULLETS = 10;
-  const ASTEROID_SPEED_MULT = 1.0;
+  const ASTEROID_SPEED_MULT = 0.3;
   const ASTEROID_POINTS_LARGE = 20;
   const ASTEROID_POINTS_MEDIUM = 50;
   const ASTEROID_POINTS_SMALL = 100;
